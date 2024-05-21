@@ -1,6 +1,6 @@
 class Profile:
     def __init__(self):
-        self._work_year = None
+        """ self._work_year = None
         self._job_title = None
         self._job_category = None
         self._salary_currency = None
@@ -11,9 +11,14 @@ class Profile:
         self._employment_type = None
         self._work_setting = None
         self._company_location = None
-        self._company_size = None
+        self._company_size = None """
+        self._employee_residence = None
+        self._experience_level = None
+        self._employment_type = None
+        self._work_setting = None
+        self._job_category = None
 
-    # Work Year property
+    """ # Work Year property
     @property
     def work_year(self):
         return self._work_year
@@ -29,15 +34,13 @@ class Profile:
 
     @job_title.setter
     def job_title(self, value):
-        self._job_title = value
+        self._job_title = value """
 
     # Similar properties for other attributes...
 
-    # Example for one more attribute
+    """ # Example for one more attribute
     @property
     def salary(self):
-        return self._salary
+        return self._salary """
 
-    @salary.setter
-    def salary(self, value):
-        self._salary = value
+ 
