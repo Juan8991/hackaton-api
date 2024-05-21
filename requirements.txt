@@ -1,0 +1,6 @@
+fastapi==0.111.0
+fastapi-cli==0.0.4
+nltk==3.8.1
+numpy==1.26.4
+pandas==2.2.2
+uvicorn==0.29.0

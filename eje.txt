@@ -1,0 +1,125 @@
+Backend: Flask API en Python
+Primero, necesitas tener un servidor API que pueda servir los datos necesarios para la gráfica. Vamos a usar Flask, un framework web ligero en Python, para este propósito.
+
+Instala Flask y Pandas:
+
+Si aún no tienes Flask y Pandas instalados, puedes instalarlos con pip:
+bash
+Copiar código
+pip install flask pandas
+Código del servidor (app.py):
+
+Aquí está el código básico para un servidor Flask que devuelve los datos promedio de salario por ubicación en formato JSON:
+python
+Copiar código
+from flask import Flask, jsonify
+import pandas as pd
+
+app = Flask(__name__)
+
+# Simula datos para la demostración
+data = {
+    'company_location': ['USA', 'Canada', 'Germany', 'India'],
+    'salary_in_usd': [120000, 95000, 80000, 30000]
+}
+df_data = pd.DataFrame(data)
+
+@app.route('/api/salary_by_location')
+def salary_by_location():
+    avg_salary_by_location = df_data.groupby('company_location', as_index=False)['salary_in_usd'].mean()
+    return jsonify(avg_salary_by_location.to_dict(orient='records'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+Frontend: Angular con Plotly.js
+Para el frontend, necesitarás Angular y Plotly.js. Asegúrate de tener Angular CLI instalado para crear y manejar tu proyecto Angular.
+
+Crea un nuevo proyecto Angular:
+
+Ejecuta el siguiente comando para crear un nuevo proyecto Angular:
+bash
+Copiar código
+ng new angular-plotly-demo
+Instala Plotly.js:
+
+Instala Plotly.js y su tipo de definición para TypeScript:
+bash
+Copiar código
+npm install plotly.js-dist-min
+npm install @types/plotly.js --save-dev
+Componente Angular para la Gráfica:
+
+Añade el siguiente código en tu componente Angular donde deseas mostrar la gráfica:
+typescript
+Copiar código
+import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import * as Plotly from 'plotly.js-dist-min';
+
+@Component({
+  selector: 'app-salary-graph',
+  template: '<div id="salaryGraph" style="width: 700px; height: 500px;"></div>',
+})
+export class SalaryGraphComponent implements OnInit {
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {
+    this.fetchDataAndPlot();
+  }
+
+  fetchDataAndPlot(): void {
+    this.http.get<any[]>('http://localhost:5000/api/salary_by_location').subscribe(data => {
+      const trace1 = {
+        x: data.map(item => item.company_location),
+        y: data.map(item => item.salary_in_usd),
+        type: 'bar'
+      };
+      const layout = {
+        title: 'Average Salary by Company Location',
+        xaxis: {
+          title: 'Company Location'
+        },
+        yaxis: {
+          title: 'Average Salary in USD'
+        }
+      };
+      Plotly.newPlot('salaryGraph', [trace1], layout);
+    });
+  }
+}
+Agregar HttpClientModule:
+
+Asegúrate de importar HttpClientModule en tu módulo principal (por lo general app.module.ts):
+typescript
+Copiar código
+import { HttpClientModule } from '@angular/common/http';
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { AppComponent } from './app.component';
+import { SalaryGraphComponent } from './salary-graph/salary-graph.component';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    SalaryGraphComponent
+  ],
+  imports: [
+    BrowserModule,
+    HttpClientModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+Recomendaciones
+Seguridad y CORS:
+
+Configura CORS en tu servidor Flask para permitir solicitudes desde tu dominio frontend, especialmente en un entorno de producción.
+Optimización de Carga de Datos:
+
+Considera paginar o limitar los datos si tienes grandes cantidades de datos para mejorar la velocidad de carga y el rendimiento del frontend.
+Manejo de Errores:
+
+Añade manejo de errores adecuado tanto en el frontend como en el backend para gestionar situaciones donde la API falle o los datos no estén disponibles.
+Con este setup, tienes un flujo completo desde generar datos en Python y servirlos a través de una API hasta consumir estos datos en un frontend Angular y visualizarlos usando Plotly.js.
