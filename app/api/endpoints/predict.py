@@ -65,8 +65,10 @@ def delete_tildes(texto):
 
 # Función para obtener nivel de experiencia
 def get_experience_level(texto):
-    pattern = r'(?:experiencia/s*de/s*)?(\d+)/s*años/s*de/s*experiencia'
-    pattern_frases = r'(amplia experiencia|mucha experiencia|gran experiencia|sólida experiencia|amplia trayectoria|extensa experiencia|experiencia considerable|experiencia sustancial|experiencia profunda|amplia formación)'
+
+    # pattern = r'(\d+)\s+anos\s+de\s+experiencia|experiencia\s+de\s+(\d+)\s+anos'
+    pattern = r'(\d+)\s+(?:anos|años)\s+de\s+experiencia|experiencia\s+de\s+(\d+)\s+(?:anos|años)'
+    pattern_frases = r'(amplia experiencia|mucha experiencia|gran experiencia|solida experiencia|amplia trayectoria|extensa experiencia|experiencia considerable|experiencia sustancial|experiencia profunda|amplia formacion)'
     pattern_executive = r'(ejecutivo|directivo|manager|gerente)'
 
     match_level = re.search(pattern, texto)
@@ -75,20 +77,27 @@ def get_experience_level(texto):
 
     if match_executive:
         nivel_experiencia = "Executive"
+
     elif match_level:
-        anos_experiencia = int(match_level.group(1))
+        if match_level.group(1) is not None:
+            anos_experiencia = int(match_level.group(1))
+        elif match_level.group(2) is not None:
+            anos_experiencia = int(match_level.group(2))
+
         if anos_experiencia < 2:
             nivel_experiencia = "Entry-level"
         elif 2 <= anos_experiencia < 5:
             nivel_experiencia = "Mid-level"
         else:
             nivel_experiencia = "Senior"
+
     elif match_frases:
         nivel_experiencia = "Senior"
     else:
-        nivel_experiencia = ""
+        nivel_experiencia = "Mid-level"
 
     return nivel_experiencia
+
 
 # Función para obtener tipo de empleo
 def get_employment_type(texto):
@@ -141,8 +150,9 @@ def get_work_setting(texto):
         
 
 # Ruta de predicción en FastAPI
-#@router.post("/nlp")
+# @router.post("/nlp")
 def predict(text: str) -> dict:
+    print(text)
     text = delete_tildes(text)
     experiencia = get_experience_level(text)
     tipo_empleo = get_employment_type(text)
