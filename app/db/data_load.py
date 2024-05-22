@@ -8,4 +8,6 @@ def load_data():
     df_data = df_data.drop_duplicates().reset_index(drop=True)
 def getDataFrameOriginal():
     global df_data
+    if df_data is None:
+        load_data()  # Cargar los datos si aún no se han cargado
     return df_data

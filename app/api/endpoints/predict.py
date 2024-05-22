@@ -1,12 +1,17 @@
 import nltk
-from nltk.corpus import stopwords
 import unicodedata
 import re
 import joblib
-from fastapi import APIRouter, File, UploadFile
 import fitz  # PyMuPDF
 import docx
+import numpy as np
+from nltk.corpus import stopwords
+from sklearn.preprocessing import StandardScaler
+from fastapi import APIRouter, File, UploadFile
 from app.models.profile import Profile
+from app.models.profilepydantic import Profilepy
+from app.db.data_load import getDataFrameOriginal
+
 
 # Descargar las stopwords si no están ya descargadas
 nltk.download('stopwords')
@@ -18,9 +23,25 @@ stop_words = set(stopwords.words('spanish'))
 router = APIRouter()
 
 # Cargar modelos una vez al inicio
+#Modelo NLP, vectorizador y label converter
 modelo_nlp = joblib.load("app/utils/predict/npl_data_science.pkl")
 tfidf_new = joblib.load('app/utils/predict/tfidf_vectorizer.joblib')
 mlb_new = joblib.load('app/utils/predict/multi_label_binarizer.joblib')
+#Modelo de Regresión
+model_regressor = joblib.load(r'app/utils/predict/xgboost_regressor.pkl')
+encoder_regressor = joblib.load(r'app/utils/predict/label_encoders_regressor.joblib')
+data = getDataFrameOriginal()
+# Seleccionar la columna que deseas escalar
+Y = data['salary_in_usd'].values.reshape(-1, 1)  # Reformar a (n_samples, 1)
+
+# Crear el StandardScaler
+scaler = StandardScaler()
+
+# Ajustar y transformar los datos
+Y_scaled = scaler.fit_transform(Y)
+#Modelo de Clasificación
+model_classifier= joblib.load(r'app/utils/predict/xgboost_classifier.pkl')
+encoder_clasifier = joblib.load(r'app/utils/predict/label_encoders_classifier.joblib')
 
 # Función para predecir etiquetas
 def predict_labels(text, modelo_nlp, tfidf, mlb):
@@ -150,6 +171,28 @@ def extract_text_from_word(docx_path):
         text += para.text + "\n"
     return text
 
+def predictLocation(x_prueba, modelo,encoder,salario=np.nan):
+    transformed_array = []
+    for value,column in zip(x_prueba,['job_category','employee_residence','experience_level','employment_type', 'work_setting','company_size']):
+        transformed_value = encoder[column].transform([value])[0]
+        transformed_array.append(transformed_value)
+
+    transformed_array.insert(1,salario)
+    y_pred = modelo.predict(np.array(transformed_array).reshape(1, -1))
+    return encoder['company_location'].inverse_transform(y_pred)[0]
+
+def predictSalary(x_prueba, model,encoder):
+    transformed_array = []
+    for value,column in zip(x_prueba,['job_category','employee_residence','experience_level','employment_type','company_location','work_setting','company_size']):
+        transformed_value = encoder[column].transform([value])[0]
+        transformed_array.append(transformed_value)
+
+
+    transformed_array
+    y_pred = model.predict(np.array(transformed_array).reshape(1, -1))
+    return scaler.inverse_transform([y_pred])
+
+
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -168,3 +211,22 @@ async def upload_file(file: UploadFile = File(...)):
     
     return predict(text)
     
+
+
+@router.post("/result")
+def save_profile(prof: Profilepy):
+    text_classification = [prof.job_category,prof.employee_residence,prof.experience_level,prof.employment_type,prof.work_setting,prof.company_size]
+    location = predictLocation(text_classification,model_classifier,encoder_clasifier,0)
+    text_regression = [prof.job_category,prof.employee_residence,prof.experience_level,prof.employment_type,prof.employee_residence,prof.work_setting,prof.company_size]
+    salary= predictSalary(text_regression,model_regressor,encoder_regressor)
+    print(salary)
+    return {"location":location,
+            "salary":salary[0][0]}
+
+    """ text_classification = [prof.job_category,prof.employee_residence,prof.experience_level,prof.employment_type,prof.work_setting,prof.company_size]
+    text_regression = [prof.job_category,prof.employee_residence,prof.experience_level,prof.employment_type,"",prof.work_setting,prof.company_size]
+    
+    return {
+        "salary": predictSalary(text_regression,model_regressor,encoder_regressor),
+        "location": predictLocation(text_classification,model_classifier,encoder_clasifier,0)
+    } """
