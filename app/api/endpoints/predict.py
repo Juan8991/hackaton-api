@@ -28,11 +28,11 @@ modelo_nlp = joblib.load("app/utils/predict/npl_data_science.pkl")
 tfidf_new = joblib.load('app/utils/predict/tfidf_vectorizer.joblib')
 mlb_new = joblib.load('app/utils/predict/multi_label_binarizer.joblib')
 #Modelo de Regresión
-model_regressor = joblib.load(r'app/utils/predict/xgboost_regressor.pkl')
-encoder_regressor = joblib.load(r'app/utils/predict/label_encoders_regressor.joblib')
-data = getDataFrameOriginal()
+model_regressor = joblib.load(r'app/utils/predict/xgboost_regressor_n.pkl')
+encoder_regressor = joblib.load(r'app/utils/predict/label_encoders_regressor_n.joblib')
+data = joblib.load(r'app/utils/predict/df.joblib')
 # Seleccionar la columna que deseas escalar
-Y = data['salary_in_usd'].values.reshape(-1, 1)  # Reformar a (n_samples, 1)
+Y = data[['salary_in_usd']]  # Reformar a (n_samples, 1)
 
 # Crear el StandardScaler
 scaler = StandardScaler()
