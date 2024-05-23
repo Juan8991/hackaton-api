@@ -45,9 +45,12 @@ encoder_clasifier = joblib.load(r'app/utils/predict/label_encoders_classifier.jo
 
 # Función para predecir etiquetas
 def predict_labels(text, modelo_nlp, tfidf, mlb):
+    print(text)
     preprocessed_text = preprocess_text(text)
     text_features = tfidf.transform([preprocessed_text])
+    print(f"text_fea {text_features}")
     prediction = modelo_nlp.predict(text_features)
+    print(f"predict {prediction}")
     return mlb.inverse_transform(prediction)
 
 # Función para preprocesar texto
@@ -150,8 +153,8 @@ def get_work_setting(texto):
         
 
 # Ruta de predicción en FastAPI
-# @router.post("/nlp")
-def predict(text: str) -> dict:
+#@router.post("/nlp")
+def predict(text: str) :
     print(text)
     text = delete_tildes(text)
     experiencia = get_experience_level(text)
@@ -164,7 +167,8 @@ def predict(text: str) -> dict:
     profile.work_setting= work_setting
     profile.job_category= etiqueta_predicha[0]
     profile.employee_residence=''
-    return profile
+    return profile 
+    
     
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
@@ -232,11 +236,3 @@ def save_profile(prof: Profilepy):
     print(salary)
     return {"location":location,
             "salary":salary[0][0]}
-
-    """ text_classification = [prof.job_category,prof.employee_residence,prof.experience_level,prof.employment_type,prof.work_setting,prof.company_size]
-    text_regression = [prof.job_category,prof.employee_residence,prof.experience_level,prof.employment_type,"",prof.work_setting,prof.company_size]
-    
-    return {
-        "salary": predictSalary(text_regression,model_regressor,encoder_regressor),
-        "location": predictLocation(text_classification,model_classifier,encoder_clasifier,0)
-    } """
