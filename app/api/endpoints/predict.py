@@ -159,12 +159,10 @@ def predict(text: str) -> dict:
     work_setting = get_work_setting(text)
     etiqueta_predicha = predict_labels(text, modelo_nlp, tfidf_new, mlb_new)
     profile =  Profile()
-    #profile.experience_level= experiencia
-    profile.experience_level = 'Senior'
+    profile.experience_level= experiencia
     profile.employment_type= tipo_empleo
     profile.work_setting= work_setting
-    #profile.job_category= etiqueta_predicha[0]
-    profile.job_category = 'Leadership and Management'
+    profile.job_category= etiqueta_predicha[0]
     profile.employee_residence=''
     return profile
     
